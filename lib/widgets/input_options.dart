@@ -1,9 +1,46 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 import '../utils/theme_colors.dart';
+import '../services/location_service.dart';
+import 'package:provider/provider.dart';
+import 'recommendation_provider.dart';
 
 class InputOptions extends StatelessWidget {
   const InputOptions({super.key});
+
+  Future<Map<String, dynamic>> fetchCropRecommendations({
+    required double lat,
+    required double long,
+    required int n,
+    required int p,
+    required int k,
+    required double ph,
+    int topK = 5,
+  }) async {
+    final url = Uri.parse("https://sih25-farmers.onrender.com/recommend_crops");
+
+    final response = await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "lat": lat,
+        "long": long,
+        "N": n,
+        "P": p,
+        "K": k,
+        "Ph": ph,
+        "top_k": topK,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception("Failed to fetch recommendations: ${response.body}");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,70 +94,46 @@ class InputOptions extends StatelessWidget {
   }) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
+      child: Card(
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          side: BorderSide(color: color.withOpacity(0.2), width: 1),
         ),
-        child: Card(
-          margin: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(
+        elevation: 3,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: color.withOpacity(0.2), width: 1),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Colors.white, color.withOpacity(0.05)],
+            ),
           ),
-          elevation: 0,
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.white,
-                  color.withOpacity(0.05),
-                ],
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 32, color: color),
+              const SizedBox(height: 12),
+              Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Colors.black87,
+                ),
               ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(icon, size: 32, color: color),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -136,85 +149,23 @@ class InputOptions extends StatelessWidget {
   ) {
     showDialog(
       context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white,
-                primaryColor.withOpacity(0.05),
-              ],
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: primaryColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(icon, size: 48, color: primaryColor),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                title,
-                style: GoogleFonts.inter(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: primaryColor,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                description,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  color: Colors.grey[700],
-                  height: 1.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: accentColor.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  status,
-                  style: GoogleFonts.inter(
-                    fontWeight: FontWeight.bold,
-                    color: primaryColor,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                ),
-                child: const Text("Got it!"),
-              ),
-            ],
-          ),
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(icon, color: primaryColor),
+            const SizedBox(width: 8),
+            Text(title),
+          ],
         ),
+        content: Text(description),
+        actions: [
+          TextButton(
+            onPressed: () {
+              if (ctx.mounted) Navigator.pop(ctx);
+            },
+            child: Text(status),
+          ),
+        ],
       ),
     );
   }
@@ -225,142 +176,81 @@ class InputOptions extends StatelessWidget {
     final kController = TextEditingController();
     final phController = TextEditingController();
 
-    showGeneralDialog(
+    showDialog(
       context: context,
-      barrierDismissible: true,
-      barrierLabel: "Manual Input",
-      transitionDuration: const Duration(milliseconds: 300),
-      pageBuilder: (_, __, ___) {
-        return Center(
-          child: SingleChildScrollView(
-            child: Material(
-              color: Colors.transparent,
-              child: Container(
-                margin: const EdgeInsets.all(20),
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Header
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [primaryColor, primaryColor.withOpacity(0.8)],
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.science,
-                              color: Colors.white, size: 24),
-                          const SizedBox(width: 8),
-                          Text(
-                            "Enter Soil Data",
-                            style: GoogleFonts.inter(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
+      builder: (ctx) => AlertDialog(
+        title: const Text("Enter Soil Data"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildEnhancedTextField(nController, "Nitrogen (N)", "", Icons.eco),
+            const SizedBox(height: 8),
+            _buildEnhancedTextField(
+                pController, "Phosphorus (P)", "", Icons.water_drop),
+            const SizedBox(height: 8),
+            _buildEnhancedTextField(
+                kController, "Potassium (K)", "", Icons.grain),
+            const SizedBox(height: 8),
+            _buildEnhancedTextField(
+                phController, "Soil pH", "0-14", Icons.analytics),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              final n = int.tryParse(nController.text) ?? 0;
+              final p = int.tryParse(pController.text) ?? 0;
+              final k = int.tryParse(kController.text) ?? 0;
+              final ph = double.tryParse(phController.text) ?? 0;
 
-                    // Input fields
-                    _buildEnhancedTextField(
-                        nController, "Nitrogen (N)", "", Icons.eco),
-                    const SizedBox(height: 16),
-                    _buildEnhancedTextField(
-                        pController, "Phosphorus (P)", "", Icons.water_drop),
-                    const SizedBox(height: 16),
-                    _buildEnhancedTextField(
-                        kController, "Potassium (K)", "", Icons.grain),
-                    const SizedBox(height: 16),
-                    _buildEnhancedTextField(
-                        phController, "Soil pH", "0-14", Icons.analytics),
-                    const SizedBox(height: 24),
+              if (n == 0 || p == 0 || k == 0 || ph == 0) {
+                if (ctx.mounted) {
+                  ScaffoldMessenger.of(ctx).showSnackBar(
+                    const SnackBar(
+                        content: Text("Please fill all fields properly")),
+                  );
+                }
+                return;
+              }
 
-                    // Submit button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          final n = nController.text;
-                          final p = pController.text;
-                          final k = kController.text;
-                          final ph = phController.text;
+              if (ctx.mounted) Navigator.pop(ctx);
+              if (context.mounted) _showLoadingDialog(context);
 
-                          if (n.isEmpty ||
-                              p.isEmpty ||
-                              k.isEmpty ||
-                              ph.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: const Text("Please fill all fields"),
-                                backgroundColor: Colors.red[400],
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                            );
-                            return;
-                          }
+              try {
+                final loc = await getCurrentLocation();
+                final result = await fetchCropRecommendations(
+                  lat: loc["latitude"]!,
+                  long: loc["longitude"]!,
+                  n: n,
+                  p: p,
+                  k: k,
+                  ph: ph,
+                );
 
-                          Navigator.of(context).pop();
-                          _showLoadingDialog(context);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: accentColor,
-                          foregroundColor: Colors.black87,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          elevation: 2,
-                        ),
-                        child: Text(
-                          "Get Crop Recommendations",
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+                if (!context.mounted) return;
+                Navigator.pop(context);
+// crops data from API
+                final crops = (result["recommended_crops"] as List).join(", ");
+                context
+                    .read<RecommendationProvider>()
+                    .setRecommendations(crops);
+// weather data from API
+                final weatherData =
+                    result["weather_data"] as Map<String, dynamic>;
+                context.read<RecommendationProvider>().setWeather(weatherData);
+              } catch (e) {
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Error: $e")),
+                  );
+                }
+              }
+            },
+            child: const Text("Get Recommendations"),
           ),
-        );
-      },
-      transitionBuilder: (_, anim, __, child) {
-        return FadeTransition(
-          opacity: CurvedAnimation(parent: anim, curve: Curves.easeOutCubic),
-          child: ScaleTransition(
-            scale: CurvedAnimation(
-              parent: anim,
-              curve: Curves.easeOutBack,
-            ),
-            child: child,
-          ),
-        );
-      },
+        ],
+      ),
     );
   }
 
@@ -374,25 +264,9 @@ class InputOptions extends StatelessWidget {
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
-        hintText: "Enter $label value",
         suffixText: unit,
         prefixIcon: Icon(icon, color: primaryColor),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: primaryColor, width: 2),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
-        ),
-        filled: true,
-        fillColor: Colors.grey[50],
-        labelStyle: GoogleFonts.inter(color: Colors.grey[700]),
-        hintStyle: GoogleFonts.inter(color: Colors.grey[500]),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
     );
@@ -402,64 +276,9 @@ class InputOptions extends StatelessWidget {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                "Analyzing soil data...",
-                style: GoogleFonts.inter(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: primaryColor,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                "Getting AI-powered recommendations",
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
+      builder: (ctx) => const Center(
+        child: CircularProgressIndicator(color: primaryColor),
       ),
     );
-
-    // Simulate processing time
-    Future.delayed(const Duration(seconds: 3), () {
-      // ignore: use_build_context_synchronously
-      Navigator.of(context).pop();
-      // ignore: use_build_context_synchronously
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Row(
-            children: [
-              Icon(Icons.check_circle, color: Colors.white),
-              SizedBox(width: 12),
-              Expanded(
-                child: Text("Analysis complete! Check recommendations below."),
-              ),
-            ],
-          ),
-          backgroundColor: Colors.green[600],
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          duration: const Duration(seconds: 4),
-        ),
-      );
-    });
   }
 }

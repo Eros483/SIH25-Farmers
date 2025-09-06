@@ -7,9 +7,17 @@ import 'package:sih_project/widgets/animated_intro.dart';
 import 'package:sih_project/widgets/location_card.dart';
 import 'package:sih_project/widgets/input_options.dart';
 import 'package:sih_project/widgets/recommendation_card.dart';
+import 'package:sih_project/widgets/recommendation_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:sih_project/widgets/weather_card.dart';
 
 void main() {
-  runApp(const CropApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => RecommendationProvider(),
+      child: const CropApp(),
+    ),
+  );
 }
 
 class CropApp extends StatefulWidget {
@@ -222,7 +230,10 @@ class _CropAppState extends State<CropApp> {
                         delay: Duration(milliseconds: 1200),
                         child: RecommendationCard(),
                       ),
-
+                      const AnimatedIntro(
+                        delay: Duration(milliseconds: 1400),
+                        child: WeatherCard(),
+                      ),
                       const SizedBox(height: 40),
                     ],
                   ),
