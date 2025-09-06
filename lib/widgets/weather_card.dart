@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import '../utils/theme_colors.dart';
-import 'recommendation_provider.dart';
+// import '../utils/theme_colors.dart';
+import '../providers/recommendation_provider.dart';
 
 class WeatherCard extends StatelessWidget {
   const WeatherCard({super.key});
@@ -70,9 +70,7 @@ class WeatherCard extends StatelessWidget {
             // Body
             Padding(
               padding: const EdgeInsets.all(20.0),
-              child: weather == null
-                  ? _buildWaitingState()
-                  : _buildWeatherState(weather),
+              child: _buildWeatherState(weather),
             ),
           ],
         ),

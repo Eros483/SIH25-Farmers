@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../utils/theme_colors.dart';
-import 'recommendation_provider.dart';
+import '../providers/recommendation_provider.dart';
 
 class RecommendationCard extends StatefulWidget {
   const RecommendationCard({super.key});
@@ -50,7 +50,7 @@ class _RecommendationCardState extends State<RecommendationCard>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              const Color(0xFFedf7ed), // light green for agri feel
+              const Color(0xFFedf7ed),
               accentColor.withOpacity(0.1),
             ],
           ),
@@ -107,7 +107,7 @@ class _RecommendationCardState extends State<RecommendationCard>
             // Content
             Padding(
               padding: const EdgeInsets.all(20.0),
-              child: recs == null || recs.isEmpty
+              child: recs.isEmpty
                   ? _buildWaitingState()
                   : _buildRecommendationState(recs),
             ),
@@ -120,8 +120,7 @@ class _RecommendationCardState extends State<RecommendationCard>
   Widget _buildWaitingState() {
     return Column(
       children: [
-        const Icon(Icons.psychology_alt,
-            size: 50, color: Colors.grey), // subtle neutral icon
+        const Icon(Icons.psychology_alt, size: 50, color: Colors.grey),
         const SizedBox(height: 16),
         Text(
           "Ready for Analysis",
@@ -145,9 +144,7 @@ class _RecommendationCardState extends State<RecommendationCard>
     );
   }
 
-  Widget _buildRecommendationState(String recs) {
-    final crops = recs.split(",").map((e) => e.trim()).toList();
-
+  Widget _buildRecommendationState(List<Map<String, dynamic>> recs) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -160,7 +157,7 @@ class _RecommendationCardState extends State<RecommendationCard>
           ),
         ),
         const SizedBox(height: 12),
-        ...crops.map((crop) => Container(
+        ...recs.map((rec) => Container(
               margin: const EdgeInsets.symmetric(vertical: 6),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -184,7 +181,7 @@ class _RecommendationCardState extends State<RecommendationCard>
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      crop,
+                      "${rec['crop']} - ₹${rec['expected_revenue']}/hectare",
                       style: GoogleFonts.inter(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,

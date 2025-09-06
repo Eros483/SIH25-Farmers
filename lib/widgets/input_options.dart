@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import '../utils/theme_colors.dart';
 import '../services/location_service.dart';
 import 'package:provider/provider.dart';
-import 'recommendation_provider.dart';
+import '../providers/recommendation_provider.dart';
 
 class InputOptions extends StatelessWidget {
   const InputOptions({super.key});
@@ -229,12 +229,19 @@ class InputOptions extends StatelessWidget {
 
                 if (!context.mounted) return;
                 Navigator.pop(context);
-// crops data from API
-                final crops = (result["recommended_crops"] as List).join(", ");
+
+                // --- Extract crops with revenue ---
+                final crops = (result["recommended_crops"] as List)
+                    .map((e) => {
+                          "crop": e["crop"],
+                          "expected_revenue": e["expected_revenue"],
+                        })
+                    .toList();
                 context
                     .read<RecommendationProvider>()
                     .setRecommendations(crops);
-// weather data from API
+
+                // --- Extract weather ---
                 final weatherData =
                     result["weather_data"] as Map<String, dynamic>;
                 context.read<RecommendationProvider>().setWeather(weatherData);
