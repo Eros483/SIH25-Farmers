@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# app.py - simple weather client function using open-meteo
-
 from datetime import datetime, timezone
 import requests
 
@@ -35,6 +32,22 @@ def _pick_nearest_hourly(hourly_block: dict, target_iso: str):
     return rh, pr
 
 def get_weather(lat: float, lon: float, timestamp: str | None = None) -> dict:
+    """
+    Returns weather data for given lat/lon
+
+    Args:
+        lat (float): Latitude
+        lon (float): Longitude
+        timestamp (str | None): ISO format timestamp, e.g. "2023-10-05T14:30:00+05:30".
+            If None, uses current time.
+        
+    Returns:
+        dict: {
+            "temperature_c": float | None,
+            "relative_humidity_percent": float | None,
+            "precipitation_mm": float | None
+            }
+    """
     if timestamp:
         try: requested_at = datetime.fromisoformat(timestamp)
         except Exception: requested_at = datetime.now(timezone.utc)
@@ -56,6 +69,3 @@ def get_weather(lat: float, lon: float, timestamp: str | None = None) -> dict:
         "relative_humidity_percent": float(rh) if rh is not None else None,
         "precipitation_mm": float(pr) if pr is not None else None,
     }
-
-if __name__ == "__main__":
-    print(get_weather(26.9124, 75.7873))  # jaipur
