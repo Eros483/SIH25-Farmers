@@ -10,8 +10,4 @@ uvicorn==0.23.2
 langchain==0.2.14
 python-dotenv==1.0.1
 langchain-google-genai==1.0.10
-torch 
-transformers 
-sentencepiece 
-IndicTransToolkit
-einops
+aiohttp==3.9.5
