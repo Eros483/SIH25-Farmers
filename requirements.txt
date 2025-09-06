@@ -1,9 +1,9 @@
-flask
-flask-cors
-idna
 numpy
 pandas
 requests
 matplotlib
 seaborn
 scikit-learn
+fastapi
+pydantic
+uvicorn

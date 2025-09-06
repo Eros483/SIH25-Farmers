@@ -72,6 +72,10 @@ def get_weather(lat: float, lon: float,
                 timestamp: Optional[str] = None,
                 year: Optional[int] = None) -> dict:
     """
+    Fetch weather data (temperature, humidity, annual precipitation) for given location.
+    Args:
+      lat (float): Latitude
+        lon (float): Longitude
     returns:
       {
         "temperature_c": float|None,
