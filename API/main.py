@@ -7,14 +7,15 @@ from typing import Optional, List
 import uvicorn
 from WeatherAPI.tool_weather import get_weather
 from RecommendationEngine.src.tool_recommender import recommend_crop
+from Chatbot.tool_chat import bot
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
-    title="Crop Recommendation API",
-    description="API for crop recommendations based on soil and weather data",
+    title="Crop Recommendation & Chat API",
+    description="API for crop recommendations based on soil and weather data, with integrated chatbot",
     version="1.0.0",
     docs_url="/docs" if os.getenv("ENV") != "production" else None,
     redoc_url="/redoc" if os.getenv("ENV") != "production" else None,
@@ -67,12 +68,55 @@ class CropRecommendationResponse(BaseModel):
     recommended_crops: List[str]
     input_parameters: dict
 
+class ChatRequest(BaseModel):
+    message: str
+    user_id: Optional[str] = None  # Optional user identification for session management
+    
+    @validator('message')
+    def validate_message(cls, v):
+        if not v or not v.strip():
+            raise ValueError('Message cannot be empty')
+        if len(v.strip()) > 1000:
+            raise ValueError('Message too long (max 1000 characters)')
+        return v.strip()
+
+class ChatResponse(BaseModel):
+    response: str
+    user_id: Optional[str] = None
+    conversation_id: Optional[str] = None
+
+class ChatMemoryResponse(BaseModel):
+    memory: str
+    user_id: Optional[str] = None
+
+# Store for managing multiple user sessions (in production, use Redis or database)
+user_sessions = {}
+
+def get_or_create_bot(user_id: Optional[str] = None):
+    """Get existing bot instance for user or create new one"""
+    if user_id is None:
+        return bot  # Use global bot instance for anonymous users
+    
+    if user_id not in user_sessions:
+        from Chatbot.tool_chat import GeminiChatbot
+        user_sessions[user_id] = GeminiChatbot()
+        logger.info(f"Created new chatbot session for user: {user_id}")
+    
+    return user_sessions[user_id]
+
 @app.get("/")
 async def root():
     return {
-        "message": "Crop Recommendation API is running!",
+        "message": "Crop Recommendation & Chat API is running!",
         "version": "1.0.0",
-        "endpoints": ["/recommend_crops", "/health", "/docs"]
+        "endpoints": [
+            "/recommend_crops", 
+            "/chat", 
+            "/chat/memory", 
+            "/chat/clear", 
+            "/health", 
+            "/docs"
+        ]
     }
 
 @app.post("/recommend_crops", response_model=CropRecommendationResponse)
@@ -141,12 +185,91 @@ async def recommend_crops_endpoint(request: CropRecommendationRequest):
         logger.error(f"Unexpected error: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error occurred")
 
+@app.post("/chat", response_model=ChatResponse)
+async def chat_endpoint(request: ChatRequest):
+    """
+    Chat with the Gemini-powered agricultural assistant.
+    
+    Args:
+        request: ChatRequest containing message and optional user_id
+    
+    Returns:
+        ChatResponse with the bot's response
+    """
+    try:
+        logger.info(f"Processing chat message for user: {request.user_id or 'anonymous'}")
+        
+        # Get or create bot instance for this user
+        user_bot = get_or_create_bot(request.user_id)
+        
+        # Get response from chatbot
+        bot_response = user_bot.chat(request.message)
+        
+        response = ChatResponse(
+            response=bot_response,
+            user_id=request.user_id,
+            conversation_id=request.user_id  # Using user_id as conversation_id for simplicity
+        )
+        
+        logger.info(f"Successfully processed chat message for user: {request.user_id or 'anonymous'}")
+        return response
+        
+    except Exception as e:
+        logger.error(f"Error in chat endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to process chat message")
+
+@app.delete("/chat/clear")
+async def clear_chat_memory(user_id: Optional[str] = None):
+    """
+    Clear the conversation memory for a user.
+    
+    Args:
+        user_id: Optional user identifier
+    
+    Returns:
+        Success message
+    """
+    try:
+        if user_id is None:
+            # Clear global bot memory
+            bot.clear_memory()
+            logger.info("Cleared global chat memory")
+        else:
+            # Clear specific user's memory
+            if user_id in user_sessions:
+                user_sessions[user_id].clear_memory()
+                logger.info(f"Cleared chat memory for user: {user_id}")
+            else:
+                logger.info(f"No existing session found for user: {user_id}")
+        
+        return {
+            "message": "Chat memory cleared successfully",
+            "user_id": user_id,
+            "timestamp": "2025-01-01T00:00:00Z"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error clearing chat memory: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to clear chat memory")
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
+    try:
+        # Test chatbot connectivity
+        test_response = bot.chat("test")
+        chatbot_status = "healthy" if test_response and not test_response.startswith("Error:") else "unhealthy"
+    except:
+        chatbot_status = "unhealthy"
+    
     return {
         "status": "healthy",
-        "timestamp": "2025-01-01T00:00:00Z",  # You might want to use actual timestamp
+        "services": {
+            "api": "healthy",
+            "chatbot": chatbot_status
+        },
+        "active_sessions": len(user_sessions),
+        "timestamp": "2025-01-01T00:00:00Z",
         "version": "1.0.0"
     }
 
