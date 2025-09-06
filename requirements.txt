@@ -4,4 +4,6 @@ idna
 numpy
 pandas
 requests
-soilgrids
+matplotlib
+seaborn
+scikit-learn

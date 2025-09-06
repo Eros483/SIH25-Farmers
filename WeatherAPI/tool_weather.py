@@ -69,3 +69,9 @@ def get_weather(lat: float, lon: float, timestamp: str | None = None) -> dict:
         "relative_humidity_percent": float(rh) if rh is not None else None,
         "precipitation_mm": float(pr) if pr is not None else None,
     }
+
+if __name__ == "__main__":
+    # Example usage
+    lat, lon = 28.6139, 77.2090  # New Delhi
+    weather_now = get_weather(lat, lon)
+    print("Current weather:", weather_now)
