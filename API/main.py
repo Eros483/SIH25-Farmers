@@ -8,6 +8,7 @@ import uvicorn
 from WeatherAPI.tool_weather import get_weather
 from RecommendationEngine.src.tool_recommender import recommend_crop
 from Chatbot.tool_chat import bot
+from Chatbot.analyzer import bot as competition_bot  # Import the competition analysis bot
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Crop Recommendation & Chat API",
-    description="API for crop recommendations based on soil and weather data, with integrated chatbot",
+    description="API for crop recommendations based on soil and weather data, with integrated chatbot and competition analysis",
     version="1.0.0",
     docs_url="/docs" if os.getenv("ENV") != "production" else None,
     redoc_url="/redoc" if os.getenv("ENV") != "production" else None,
@@ -70,6 +71,7 @@ class CropRecommendationRequest(BaseModel):
 class CropRecommendationResponse(BaseModel):
     weather_data: dict
     recommended_crops: List[CropRecommendation]
+    competition_analysis: str  # New field for LLM analysis
     input_parameters: dict
 
 class ChatRequest(BaseModel):
@@ -111,7 +113,7 @@ def get_or_create_bot(user_id: Optional[str] = None):
 @app.get("/")
 async def root():
     return {
-        "message": "Crop Recommendation & Chat API is running!",
+        "message": "Crop Recommendation & Chat API with Competition Analysis is running!",
         "version": "1.0.0",
         "endpoints": [
             "/recommend_crops", 
@@ -126,19 +128,21 @@ async def root():
 @app.post("/recommend_crops", response_model=CropRecommendationResponse)
 async def recommend_crops_endpoint(request: CropRecommendationRequest):
     """
-    Get crop recommendations based on location coordinates and soil parameters.
+    Get crop recommendations based on location coordinates and soil parameters,
+    with competition analysis from neighboring farmers.
     
     Args:
         request: CropRecommendationRequest containing lat, long, N, P, K, Ph, and optional top_k
     
     Returns:
-        CropRecommendationResponse with weather data and crop recommendations with expected revenue
+        CropRecommendationResponse with weather data, crop recommendations with expected revenue,
+        and competition analysis advice
     """
     try:
         logger.info(f"Processing crop recommendation for coordinates: {request.lat}, {request.long}")
         
         # Step 1: Get weather data using lat and long
-        weather_data = get_weather(lat=request.lat, lon=request.long)
+        weather_data = get_weather(lat=request.lat, lon=request.long, year=2024)
         
         if not weather_data:
             logger.error("Failed to retrieve weather data")
@@ -155,7 +159,7 @@ async def recommend_crops_endpoint(request: CropRecommendationRequest):
                 detail="Incomplete weather data retrieved. Missing temperature, humidity, or rainfall data."
             )
 
-        # Get recommendations (now returns list of dicts with crop and expected_revenue)
+        # Step 2: Get recommendations (returns list of dicts with crop and expected_revenue)
         recommendations = recommend_crop(
             N=request.N,
             P=request.P,
@@ -176,9 +180,30 @@ async def recommend_crops_endpoint(request: CropRecommendationRequest):
             for rec in recommendations
         ]
         
+        # Step 3: Run competition analysis on recommended crops
+        logger.info("Running competition analysis on recommended crops")
+        try:
+            # Extract crop names for analysis
+            suggested_crop_names = [rec["crop"] for rec in recommendations]
+            
+            # Get competition analysis from the analyzer bot
+            competition_analysis = competition_bot.generate_response(
+                suggested_crops=suggested_crop_names,
+                temperature=0.7
+            )
+            
+            logger.info("Successfully completed competition analysis")
+            
+        except Exception as e:
+            logger.error(f"Competition analysis failed: {str(e)}")
+            # Provide fallback analysis if the competition bot fails
+            competition_analysis = f"Competition analysis unavailable. Recommended crops based on soil and weather conditions: {', '.join(suggested_crop_names[:3])}."
+        
+        # Step 4: Build response
         response = CropRecommendationResponse(
             weather_data=weather_data,
             recommended_crops=recommended_crops,
+            competition_analysis=competition_analysis,
             input_parameters={
                 "latitude": request.lat,
                 "longitude": request.long,
@@ -190,7 +215,7 @@ async def recommend_crops_endpoint(request: CropRecommendationRequest):
             }
         )
         
-        logger.info(f"Successfully processed recommendation with {len(recommended_crops)} crops")
+        logger.info(f"Successfully processed recommendation with {len(recommended_crops)} crops and competition analysis")
         return response
         
     except HTTPException:
@@ -276,11 +301,19 @@ async def health_check():
     except:
         chatbot_status = "unhealthy"
     
+    try:
+        # Test competition analysis bot
+        test_competition = competition_bot.generate_response(["Rice", "Wheat"], temperature=0.5)
+        competition_status = "healthy" if test_competition and not test_competition.startswith("Error:") else "unhealthy"
+    except:
+        competition_status = "unhealthy"
+    
     return {
         "status": "healthy",
         "services": {
             "api": "healthy",
-            "chatbot": chatbot_status
+            "chatbot": chatbot_status,
+            "competition_analyzer": competition_status
         },
         "active_sessions": len(user_sessions),
         "timestamp": "2025-01-01T00:00:00Z",
