@@ -4,3 +4,4 @@ idna
 numpy
 pandas
 requests
+soilgrids
