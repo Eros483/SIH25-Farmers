@@ -8,6 +8,7 @@ import uvicorn
 import asyncio
 import aiohttp
 from contextlib import asynccontextmanager
+from openai import AsyncOpenAI
 
 # Import existing modules
 from WeatherAPI.tool_weather import get_weather

@@ -11,3 +11,4 @@ langchain==0.2.14
 python-dotenv==1.0.1
 langchain-google-genai==1.0.10
 aiohttp==3.9.5
+openai==0.27.8
