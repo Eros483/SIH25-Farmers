@@ -2,11 +2,11 @@ import numpy as np
 import joblib
 import pandas as pd
 
-# Load artifacts
 scaler = joblib.load("RecommendationEngine/models/scaler.pkl")
 le = joblib.load("RecommendationEngine/models/label_encoder.pkl")
 model = joblib.load("RecommendationEngine/models/log_reg_model.pkl")
 
+df=pd.read_csv("RecommendationEngine/artifacts/crop_prices_yield_revenue.csv")
 
 def recommend_crop(N, P, K, temperature, humidity, ph, rainfall, top_k=5):
     """
@@ -27,7 +27,7 @@ def recommend_crop(N, P, K, temperature, humidity, ph, rainfall, top_k=5):
     rain_min = 20.211267
     rain_max = 298.560117
     scaled = (rainfall - rain_min) / (rain_max - rain_min) * (rain_max - rain_min) + rain_min
-    # create input as DataFrame with feature names
+
     features = pd.DataFrame([{
         "N": N,
         "P": P,
@@ -48,5 +48,9 @@ def recommend_crop(N, P, K, temperature, humidity, ph, rainfall, top_k=5):
     top_k_idx = np.argsort(probs)[::-1][:top_k]
     top_k_labels = le.inverse_transform(top_k_idx)
     
-    return list(top_k_labels)
-2
+    recommendations = []
+    for crop in top_k_labels:
+        revenue = df.loc[df["CROP"] == crop, "Total Price earned in a hectare"].values[0]
+        recommendations.append({"crop": crop, "expected_revenue": revenue})
+    
+    return recommendations

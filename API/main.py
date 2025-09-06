@@ -3,7 +3,7 @@ import logging
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, validator
-from typing import Optional, List
+from typing import Optional, List, Dict, Union
 import uvicorn
 from WeatherAPI.tool_weather import get_weather
 from RecommendationEngine.src.tool_recommender import recommend_crop
@@ -29,6 +29,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+class CropRecommendation(BaseModel):
+    crop: str
+    expected_revenue: float
 
 class CropRecommendationRequest(BaseModel):
     lat: float
@@ -65,7 +69,7 @@ class CropRecommendationRequest(BaseModel):
 
 class CropRecommendationResponse(BaseModel):
     weather_data: dict
-    recommended_crops: List[str]
+    recommended_crops: List[CropRecommendation]
     input_parameters: dict
 
 class ChatRequest(BaseModel):
@@ -128,7 +132,7 @@ async def recommend_crops_endpoint(request: CropRecommendationRequest):
         request: CropRecommendationRequest containing lat, long, N, P, K, Ph, and optional top_k
     
     Returns:
-        CropRecommendationResponse with weather data and crop recommendations
+        CropRecommendationResponse with weather data and crop recommendations with expected revenue
     """
     try:
         logger.info(f"Processing crop recommendation for coordinates: {request.lat}, {request.long}")
@@ -151,7 +155,8 @@ async def recommend_crops_endpoint(request: CropRecommendationRequest):
                 detail="Incomplete weather data retrieved. Missing temperature, humidity, or rainfall data."
             )
 
-        recommended_crops = recommend_crop(
+        # Get recommendations (now returns list of dicts with crop and expected_revenue)
+        recommendations = recommend_crop(
             N=request.N,
             P=request.P,
             K=request.K,
@@ -161,6 +166,15 @@ async def recommend_crops_endpoint(request: CropRecommendationRequest):
             rainfall=rainfall,
             top_k=request.top_k
         )
+        
+        # Convert to CropRecommendation objects
+        recommended_crops = [
+            CropRecommendation(
+                crop=rec["crop"],
+                expected_revenue=rec["expected_revenue"]
+            )
+            for rec in recommendations
+        ]
         
         response = CropRecommendationResponse(
             weather_data=weather_data,
