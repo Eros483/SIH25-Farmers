@@ -24,7 +24,9 @@ def recommend_crop(N, P, K, temperature, humidity, ph, rainfall, top_k=5):
     Returns:
         List[str]: List of top-k recommended crop names
     """
-    clipped = max(min(rainfall, 298.560117), 20.211267)
+    rain_min = 20.211267
+    rain_max = 298.560117
+    scaled = (rainfall - rain_min) / (rain_max - rain_min) * (rain_max - rain_min) + rain_min
     # create input as DataFrame with feature names
     features = pd.DataFrame([{
         "N": N,
@@ -33,7 +35,7 @@ def recommend_crop(N, P, K, temperature, humidity, ph, rainfall, top_k=5):
         "temperature": temperature,
         "humidity": humidity,
         "ph": ph,
-        "rainfall": clipped
+        "rainfall": scaled
     }])
     
     # scale
@@ -47,7 +49,4 @@ def recommend_crop(N, P, K, temperature, humidity, ph, rainfall, top_k=5):
     top_k_labels = le.inverse_transform(top_k_idx)
     
     return list(top_k_labels)
-
-if __name__ == "__main__":
-    # Example usage
-    print(recommend_crop(80, 40, 60, 28.5, 65, 6.8, 120))  # Example input
+2

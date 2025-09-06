@@ -116,4 +116,4 @@ def get_weather(lat: float, lon: float,
 
 # demo
 if __name__ == "__main__":
-    print(get_weather(26.9124, 75.7873, year=2024))
+    print(get_weather(27.0238, 74.2179, year=2024))
