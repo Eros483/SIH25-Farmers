@@ -3,9 +3,9 @@ import joblib
 import pandas as pd
 
 # Load artifacts
-scaler = joblib.load("../models/scaler.pkl")
-le = joblib.load("../models/label_encoder.pkl")
-model = joblib.load("../models/log_reg_model.pkl")
+scaler = joblib.load("RecommendationEngine/models/scaler.pkl")
+le = joblib.load("RecommendationEngine/models/label_encoder.pkl")
+model = joblib.load("RecommendationEngine/models/log_reg_model.pkl")
 
 
 def recommend_crop(N, P, K, temperature, humidity, ph, rainfall, top_k=5):
@@ -47,3 +47,7 @@ def recommend_crop(N, P, K, temperature, humidity, ph, rainfall, top_k=5):
     top_k_labels = le.inverse_transform(top_k_idx)
     
     return list(top_k_labels)
+
+if __name__ == "__main__":
+    # Example usage
+    print(recommend_crop(80, 40, 60, 28.5, 65, 6.8, 120))  # Example input

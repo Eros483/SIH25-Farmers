@@ -1,6 +1,8 @@
 import pandas as pd
+import ast
 
-df = pd.read_csv("../artifacts/processed/cleaned_EcoCrop_DB.csv", encoding="cp1252")
+df = pd.read_csv("RecommendationEngine/artifacts/processed/cleaned_EcoCrop_DB.csv", encoding="cp1252")
+df["COMNAME"] = df["COMNAME"].apply(ast.literal_eval)
 
 def get_crop_ranges(crop_name: str):
     """
