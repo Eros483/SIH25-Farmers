@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-# app.py - simplified weather client (Open-Meteo)
-# returns temperature, humidity, and year-to-date rainfall (mm)
+# tool_weather.py - weather client (Open-Meteo)
+# returns temperature, humidity, and rainfall totals (mm)
 
 from datetime import datetime, timezone
 import requests
@@ -9,7 +9,6 @@ from typing import Optional
 OPEN_METEO_BASE = "https://api.open-meteo.com/v1/forecast"
 OPEN_METEO_ARCHIVE = "https://archive-api.open-meteo.com/v1/archive"
 
-# request only what we need
 API_PARAMS_TEMPLATE = {
     "hourly": "relativehumidity_2m",
     "current_weather": "true",
@@ -41,11 +40,14 @@ def _pick_nearest_hourly(hourly_block: dict, target_iso: str) -> Optional[float]
     except Exception:
         return None
 
-def fetch_year_to_date_precip(lat: float, lon: float, year: int) -> Optional[float]:
-    """fetch daily precipitation sums from Jan 1 of given year to today, return total mm"""
+def fetch_year_precip(lat: float, lon: float, year: int) -> Optional[float]:
+    """fetch daily precipitation sums for full year (or year-to-date if current year)"""
     start = f"{year}-01-01"
     today = datetime.now().date()
-    end = today.strftime("%Y-%m-%d")
+    if year == today.year:
+        end = today.strftime("%Y-%m-%d")   # current year → stop today
+    else:
+        end = f"{year}-12-31"              # past years → full year
 
     params = {
         "latitude": lat,
@@ -66,13 +68,15 @@ def fetch_year_to_date_precip(lat: float, lon: float, year: int) -> Optional[flo
         print("archive fetch failed:", e)
         return None
 
-def get_weather(lat: float, lon: float, timestamp: Optional[str] = None) -> dict:
+def get_weather(lat: float, lon: float,
+                timestamp: Optional[str] = None,
+                year: Optional[int] = None) -> dict:
     """
     returns:
       {
         "temperature_c": float|None,
         "relative_humidity_percent": float|None,
-        "annual_precip_mm": float|None
+        "annual_precip_mm": float|None   # full year (past) or year-to-date (current year)
       }
     """
     # pick timestamp or now
@@ -84,7 +88,9 @@ def get_weather(lat: float, lon: float, timestamp: Optional[str] = None) -> dict
     else:
         req_time = datetime.now(timezone.utc)
 
-    year = req_time.year
+    # default year = current year
+    if year is None:
+        year = req_time.year
 
     # fetch current + humidity
     try:
@@ -100,7 +106,7 @@ def get_weather(lat: float, lon: float, timestamp: Optional[str] = None) -> dict
     hourly = raw.get("hourly", {}) or {}
     rh = _pick_nearest_hourly(hourly, req_time.isoformat())
 
-    annual = fetch_year_to_date_precip(lat, lon, year)
+    annual = fetch_year_precip(lat, lon, year)
 
     return {
         "temperature_c": float(temp) if temp is not None else None,
@@ -110,4 +116,8 @@ def get_weather(lat: float, lon: float, timestamp: Optional[str] = None) -> dict
 
 # demo
 if __name__ == "__main__":
-    print(get_weather(26.9124, 75.7873))  # jaipur
+    print("Current year rainfall (2025 so far):")
+    print(get_weather(26.9124, 75.7873))  
+
+    print("\nFull year rainfall for 2024:")
+    print(get_weather(26.9124, 75.7873, year=2024))
