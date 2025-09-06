@@ -1,0 +1,119 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>realtime weather (geo + fallback)</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "segoe ui", roboto, sans-serif; padding: 18px; max-width:760px; }
+    button { padding: 10px 14px; border-radius: 8px; margin-right:8px; }
+    input { padding:8px; border-radius:6px; width:140px; margin-right:6px; }
+    .row { margin:8px 0; }
+    pre { background:#f6f6f6; padding:12px; border-radius:6px; white-space:pre-wrap; }
+    small { color:#666; }
+  </style>
+</head>
+<body>
+  <h3>get weather at my location (click once)</h3>
+
+  <div class="row">
+    <button id="btn-geo">use my device location</button>
+    <button id="btn-ip">try ip-detect (coarse)</button>
+  </div>
+
+  <div class="row">
+    <small>or enter coords manually (lat, lon) and press get:</small><br/>
+    <input id="lat" placeholder="lat (eg 26.9124)" />
+    <input id="lon" placeholder="lon (eg 75.7873)" />
+    <button id="btn-manual">get</button>
+  </div>
+
+  <p id="status"></p>
+  <pre id="out"></pre>
+
+  <script>
+    const status = document.getElementById('status');
+    const out = document.getElementById('out');
+
+    async function postWeather(lat, lon, timestampIso) {
+      const body = { lat: lat, lon: lon, timestamp: timestampIso };
+      status.textContent = "requesting weather...";
+      try {
+        const resp = await fetch("http://127.0.0.1:8000/weather", { method: "POST",
+          headers: {"content-type":"application/json"},
+          body: JSON.stringify(body)
+        });
+        const j = await resp.json();
+        out.textContent = JSON.stringify(j, null, 2);
+        status.textContent = resp.ok ? "success" : `server error: ${resp.status}`;
+      } catch (e) {
+        status.textContent = "network error: " + e.toString();
+      }
+    }
+
+    // device geolocation flow
+    document.getElementById('btn-geo').addEventListener('click', () => {
+      status.textContent = "requesting device location (browser prompt)...";
+      out.textContent = "";
+      if (!navigator.geolocation) {
+        status.textContent = "geolocation not supported in this browser";
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        const ts = new Date().toISOString();
+        status.textContent = `got location ${lat.toFixed(5)}, ${lon.toFixed(5)} — requesting weather...`;
+        await postWeather(lat, lon, ts);
+      }, (err) => {
+        // user denied or other error
+        console.log("geo error", err);
+        if (err.code === 1) {
+          status.innerHTML = "geolocation denied. allow location in browser or enter coords manually below.";
+        } else if (err.code === 2) {
+          status.innerHTML = "position unavailable. try manual coords or ip detect.";
+        } else if (err.code === 3) {
+          status.innerHTML = "geolocation timed out. try again or use manual coords.";
+        } else {
+          status.innerHTML = "geolocation error: " + err.message;
+        }
+      }, { enableHighAccuracy: true, timeout: 10000 });
+    });
+
+    // manual coords flow
+    document.getElementById('btn-manual').addEventListener('click', async () => {
+      const lat = parseFloat(document.getElementById('lat').value.trim());
+      const lon = parseFloat(document.getElementById('lon').value.trim());
+      if (!isFinite(lat) || !isFinite(lon)) {
+        status.textContent = "please enter valid numeric lat and lon";
+        return;
+      }
+      out.textContent = "";
+      const ts = new Date().toISOString();
+      status.textContent = `using manual coords ${lat.toFixed(5)}, ${lon.toFixed(5)} — requesting weather...`;
+      await postWeather(lat, lon, ts);
+    });
+
+    // ip-based fallback (coarse). free ip geolocation endpoints can be rate-limited.
+    // this tries ipapi.co (no key for basic usage). if you prefer, change to another provider.
+    document.getElementById('btn-ip').addEventListener('click', async () => {
+      status.textContent = "detecting location via ip (coarse)...";
+      out.textContent = "";
+      try {
+        const r = await fetch("https://ipapi.co/json/");
+        if (!r.ok) throw new Error("ip detect failed");
+        const info = await r.json();
+        const lat = parseFloat(info.latitude || info.lat || info.latitude);
+        const lon = parseFloat(info.longitude || info.lon || info.longitude);
+        if (!isFinite(lat) || !isFinite(lon)) {
+          status.textContent = "ip detect returned no coords; please enter them manually";
+          return;
+        }
+        status.textContent = `ip-detected approx coords ${lat.toFixed(4)}, ${lon.toFixed(4)} — requesting weather...`;
+        await postWeather(lat, lon, new Date().toISOString());
+      } catch (e) {
+        status.textContent = "ip-detect failed: " + e.toString() + " — please enter lat/lon manually.";
+      }
+    });
+  </script>
+</body>
+</html>
