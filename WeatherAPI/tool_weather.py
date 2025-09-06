@@ -116,8 +116,4 @@ def get_weather(lat: float, lon: float,
 
 # demo
 if __name__ == "__main__":
-    print("Current year rainfall (2025 so far):")
-    print(get_weather(26.9124, 75.7873))  
-
-    print("\nFull year rainfall for 2024:")
     print(get_weather(26.9124, 75.7873, year=2024))
