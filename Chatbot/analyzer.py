@@ -26,7 +26,7 @@ def competition_handling_prompt(surrounding_crops, price_trends, recommended_cro
     {recommended_crops}
 
     Based on this information, choose which crop would be most profitable for the user to plant, and tell this to the user.
-    Only return the recommended crop name, and a short explanation.
+    Only return the recommended crop name, and a 2 line explanation.
     """
 
 def read_village_crops(file_path):
