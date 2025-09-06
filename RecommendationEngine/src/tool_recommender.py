@@ -8,9 +8,9 @@ le = joblib.load("../models/label_encoder.pkl")
 model = joblib.load("../models/log_reg_model.pkl")
 
 
-def recommend_crop(N, P, K, temperature, humidity, ph, rainfall, top_k=3):
+def recommend_crop(N, P, K, temperature, humidity, ph, rainfall, top_k=5):
     """
-    Recommend top-k crops based on soil and weather conditions.
+    Recommends top-k crops based on input features using a pre-trained model.
     Args:
         N (float): Nitrogen content in soil
         P (float): Phosphorus content in soil
@@ -19,12 +19,13 @@ def recommend_crop(N, P, K, temperature, humidity, ph, rainfall, top_k=3):
         humidity (float): Relative humidity in percentage
         ph (float): pH value of the soil
         rainfall (float): Rainfall in mm
-        
-        top_k (int): Number of top crops to return
+        top_k (int): Number of top crops to recommend
     
     Returns:
         List[str]: List of top-k recommended crop names
     """
+    clipped = max(min(rainfall, 298.560117), 20.211267)
+    # create input as DataFrame with feature names
     features = pd.DataFrame([{
         "N": N,
         "P": P,
@@ -32,7 +33,7 @@ def recommend_crop(N, P, K, temperature, humidity, ph, rainfall, top_k=3):
         "temperature": temperature,
         "humidity": humidity,
         "ph": ph,
-        "rainfall": rainfall
+        "rainfall": clipped
     }])
     
     # scale
