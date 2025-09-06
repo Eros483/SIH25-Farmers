@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../utils/theme_colors.dart';
+import '../providers/recommendation_provider.dart';
 
 class RecommendationCard extends StatefulWidget {
   const RecommendationCard({super.key});
@@ -21,14 +23,9 @@ class _RecommendationCardState extends State<RecommendationCard>
       duration: const Duration(seconds: 2),
       vsync: this,
     );
-    _pulseAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.05,
-    ).animate(CurvedAnimation(
-      parent: _pulseController,
-      curve: Curves.easeInOut,
-    ));
-
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
     _pulseController.repeat(reverse: true);
   }
 
@@ -40,93 +37,82 @@ class _RecommendationCardState extends State<RecommendationCard>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.white,
-            accentColor.withOpacity(0.05),
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: primaryColor.withOpacity(0.1),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
+    final recs = context.watch<RecommendationProvider>().recommendations;
+
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      elevation: 6,
+      margin: const EdgeInsets.symmetric(vertical: 16),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFFedf7ed),
+              accentColor.withOpacity(0.1),
+            ],
           ),
-        ],
-        border: Border.all(
-          color: accentColor.withOpacity(0.3),
-          width: 1.5,
+          border: Border.all(color: primaryColor.withOpacity(0.4), width: 1.5),
         ),
-      ),
-      child: Column(
-        children: [
-          // Header
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  primaryColor.withOpacity(0.1),
-                  accentColor.withOpacity(0.1),
+        child: Column(
+          children: [
+            // Header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: primaryColor.withOpacity(0.1),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+              ),
+              child: Row(
+                children: [
+                  AnimatedBuilder(
+                    animation: _pulseAnimation,
+                    builder: (context, child) {
+                      return Transform.scale(
+                        scale: _pulseAnimation.value,
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: primaryColor.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.agriculture,
+                              size: 24, color: primaryColor),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      "Recommended Crops",
+                      style: GoogleFonts.inter(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: primaryColor,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 ],
               ),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
-              ),
             ),
-            child: Row(
-              children: [
-                AnimatedBuilder(
-                  animation: _pulseAnimation,
-                  builder: (context, child) {
-                    return Transform.scale(
-                      scale: _pulseAnimation.value,
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: primaryColor.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.psychology,
-                          size: 24,
-                          color: primaryColor,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  "AI-Powered Recommendations",
-                  style: GoogleFonts.inter(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: primaryColor,
-                  ),
-                ),
-              ],
-            ),
-          ),
 
-          // Content
-          Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              children: [
-                // Waiting state illustration
-                _buildWaitingState(),
-              ],
+            // Content
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: recs.isEmpty
+                  ? _buildWaitingState()
+                  : _buildRecommendationState(recs),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -134,62 +120,78 @@ class _RecommendationCardState extends State<RecommendationCard>
   Widget _buildWaitingState() {
     return Column(
       children: [
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            // Outer circle
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: primaryColor.withOpacity(0.1),
-                border: Border.all(
-                  color: primaryColor.withOpacity(0.3),
-                  width: 2,
-                ),
-              ),
-            ),
-            // Inner animated circle
-            AnimatedBuilder(
-              animation: _pulseController,
-              builder: (context, child) {
-                return Container(
-                  width: 70,
-                  height: 70,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: accentColor.withOpacity(0.2),
-                  ),
-                  child: const Icon(
-                    Icons.eco_outlined,
-                    size: 35,
-                    color: primaryColor,
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
+        const Icon(Icons.psychology_alt, size: 50, color: Colors.grey),
         const SizedBox(height: 16),
         Text(
           "Ready for Analysis",
           style: GoogleFonts.inter(
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: FontWeight.bold,
             color: primaryColor,
           ),
         ),
         const SizedBox(height: 8),
         Text(
-          "Submit soil data above to receive AI-powered crop recommendations tailored to your location and conditions",
+          "Submit your soil data to receive personalized crop suggestions",
           style: GoogleFonts.inter(
             fontSize: 14,
-            color: Colors.grey[600],
+            color: Colors.black87,
             height: 1.5,
           ),
           textAlign: TextAlign.center,
         ),
+      ],
+    );
+  }
+
+  Widget _buildRecommendationState(List<Map<String, dynamic>> recs) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Based on soil data, you can grow:",
+          style: GoogleFonts.inter(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 12),
+        ...recs.map((rec) => Container(
+              margin: const EdgeInsets.symmetric(vertical: 6),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(
+                  color: primaryColor.withOpacity(0.3),
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: primaryColor.withOpacity(0.05),
+                    blurRadius: 6,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.grass, size: 22, color: primaryColor),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      "${rec['crop']} - ₹${rec['expected_revenue']}/hectare",
+                      style: GoogleFonts.inter(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )),
       ],
     );
   }
