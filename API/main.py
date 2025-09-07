@@ -569,6 +569,21 @@ async def clear_chat_memory(user_id: Optional[str] = None):
         logger.error(f"Error clearing chat memory: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to clear chat memory")
 
+@app.get("/buyers")
+async def get_verified_buyers():
+    """
+    Get a static list of government-verified buyers for farming wholesale.
+    Returns the data as a list of lists.
+    """
+    buyers = [
+        ["Rajesh Kumar", "National Agricultural Cooperative Marketing Federation of India Ltd (NAFED)", "+91-9876543210"],
+        ["Anita Sharma", "Food Corporation of India (FCI)", "+91-9811122233"],
+        ["Suresh Patel", "State Farm Produce Marketing Federation Gujarat", "+91-9825098765"],
+        ["Meena Reddy", "Andhra Pradesh State Civil Supplies Corporation", "+91-9849012345"],
+        ["Amit Singh", "Haryana State Cooperative Supply and Marketing Federation (HAFED)", "+91-9810011223"],
+    ]
+    return {"buyers": buyers}
+
 @app.get("/health")
 async def health_check():
     """Comprehensive health check"""
