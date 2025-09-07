@@ -30,13 +30,15 @@ class CompetitionAnalysisWidget extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        final recommendedCrop =
-            _extractRecommendedCrop(provider.competitionAnalysis);
+        final recommendedCrop = _extractRecommendedCrop(
+          provider.competitionAnalysis,
+        );
         final analysisText = _formatAnalysisText(provider.competitionAnalysis);
 
         return Card(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           elevation: 4,
           margin: const EdgeInsets.symmetric(vertical: 12),
           child: Container(
@@ -46,7 +48,7 @@ class CompetitionAnalysisWidget extends StatelessWidget {
               gradient: LinearGradient(
                 colors: [
                   Colors.blue.shade50,
-                  Colors.indigo.shade50.withOpacity(0.3)
+                  Colors.indigo.shade50.withOpacity(0.3),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -165,8 +167,10 @@ class CompetitionAnalysisWidget extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.amber.shade50,
                     borderRadius: BorderRadius.circular(8),

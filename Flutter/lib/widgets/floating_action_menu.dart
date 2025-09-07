@@ -8,6 +8,7 @@ class FloatingActionMenu extends StatelessWidget {
   final bool isMenuOpen;
   final VoidCallback toggleMenu;
   final VoidCallback navigateToChatBot;
+  final VoidCallback navigateToVerifiedPage;
 
   const FloatingActionMenu({
     super.key,
@@ -16,6 +17,7 @@ class FloatingActionMenu extends StatelessWidget {
     required this.isMenuOpen,
     required this.toggleMenu,
     required this.navigateToChatBot,
+    required this.navigateToVerifiedPage,
   });
 
   @override
@@ -36,6 +38,12 @@ class FloatingActionMenu extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
+                    const SizedBox(height: 12),
+                    _buildMenuItem(
+                      icon: Icons.verified,
+                      label: "Verified Buyers",
+                      onTap: navigateToVerifiedPage,
+                    ),
                     const SizedBox(height: 12),
                     _buildMenuItem(
                       icon: Icons.chat,

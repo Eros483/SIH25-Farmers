@@ -46,6 +46,57 @@ class InputOptions extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        // Language change button
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Tooltip(
+              message: "Coming Soon",
+              child: InkWell(
+                onTap: null, // Disabled
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.grey.withOpacity(0.5),
+                      width: 1,
+                    ),
+                    color: Colors.grey.withOpacity(0.1),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.language,
+                        size: 16,
+                        color: Colors.grey[600],
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        "EN",
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      Icon(
+                        Icons.keyboard_arrow_down,
+                        size: 14,
+                        color: Colors.grey[600],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
         Row(
           children: [
             Expanded(
@@ -186,13 +237,25 @@ class InputOptions extends StatelessWidget {
             _buildEnhancedTextField(nController, "Nitrogen (N)", "", Icons.eco),
             const SizedBox(height: 8),
             _buildEnhancedTextField(
-                pController, "Phosphorus (P)", "", Icons.water_drop),
+              pController,
+              "Phosphorus (P)",
+              "",
+              Icons.water_drop,
+            ),
             const SizedBox(height: 8),
             _buildEnhancedTextField(
-                kController, "Potassium (K)", "", Icons.grain),
+              kController,
+              "Potassium (K)",
+              "",
+              Icons.grain,
+            ),
             const SizedBox(height: 8),
             _buildEnhancedTextField(
-                phController, "Soil pH", "0-14", Icons.analytics),
+              phController,
+              "Soil pH",
+              "0-14",
+              Icons.analytics,
+            ),
           ],
         ),
         actions: [
@@ -207,7 +270,8 @@ class InputOptions extends StatelessWidget {
                 if (ctx.mounted) {
                   ScaffoldMessenger.of(ctx).showSnackBar(
                     const SnackBar(
-                        content: Text("Please fill all fields properly")),
+                      content: Text("Please fill all fields properly"),
+                    ),
                   );
                 }
                 return;
@@ -232,10 +296,12 @@ class InputOptions extends StatelessWidget {
 
                 // Extract crops with revenue
                 final crops = (result["recommended_crops"] as List)
-                    .map((e) => {
-                          "crop": e["crop"],
-                          "expected_revenue": e["expected_revenue"],
-                        })
+                    .map(
+                      (e) => {
+                        "crop": e["crop"],
+                        "expected_revenue": e["expected_revenue"],
+                      },
+                    )
                     .toList();
 
                 // Extract weather data
@@ -254,9 +320,9 @@ class InputOptions extends StatelessWidget {
               } catch (e) {
                 if (context.mounted) {
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Error: $e")),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text("Error: $e")));
                 }
               }
             },
@@ -289,9 +355,8 @@ class InputOptions extends StatelessWidget {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => const Center(
-        child: CircularProgressIndicator(color: primaryColor),
-      ),
+      builder: (ctx) =>
+          const Center(child: CircularProgressIndicator(color: primaryColor)),
     );
   }
 }

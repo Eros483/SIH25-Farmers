@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:gpt_markdown/gpt_markdown.dart';
 import '../utils/theme_colors.dart';
 import '../models/chat_message.dart';
 
@@ -25,7 +26,7 @@ class MessageBubble extends StatelessWidget {
             const SizedBox(width: 8),
           ],
           Flexible(
-            child: _buildMessageContainer(),
+            child: _buildMessageContainer(context),
           ),
           if (message.isUser) ...[
             const SizedBox(width: 8),
@@ -68,7 +69,7 @@ class MessageBubble extends StatelessWidget {
     );
   }
 
-  Widget _buildMessageContainer() {
+  Widget _buildMessageContainer(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
@@ -86,14 +87,23 @@ class MessageBubble extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            message.text,
-            style: GoogleFonts.inter(
-              color: _getTextColor(),
-              fontSize: 14,
-              height: 1.4,
-            ),
-          ),
+          message.isUser
+              ? Text(
+                  message.text,
+                  style: GoogleFonts.inter(
+                    color: _getTextColor(),
+                    fontSize: 14,
+                    height: 1.4,
+                  ),
+                )
+              : GptMarkdown(
+                  message.text,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: _getTextColor(),
+                    fontFamily: GoogleFonts.inter().fontFamily,
+                  ),
+                ),
           const SizedBox(height: 4),
           Text(
             _formatTime(message.timestamp),

@@ -104,14 +104,12 @@ class _LocationCardState extends State<LocationCard>
               children: [
                 Row(
                   children: [
-                    // Location icon with ripple effect
                     SizedBox(
                       width: 50,
                       height: 50,
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
-                          // Ripple effect for loading state
                           if (!widget.locationFetched)
                             AnimatedBuilder(
                               animation: _rippleAnimation,
@@ -128,7 +126,6 @@ class _LocationCardState extends State<LocationCard>
                                 );
                               },
                             ),
-                          // Main icon
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
@@ -151,24 +148,25 @@ class _LocationCardState extends State<LocationCard>
                       ),
                     ),
                     const SizedBox(width: 16),
-
-                    // Location text
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
-                              Text(
-                                "Current Location",
-                                style: GoogleFonts.inter(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: primaryColor,
+                              Expanded(
+                                child: Text(
+                                  "Current Location",
+                                  style: GoogleFonts.inter(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: primaryColor,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
                                 ),
                               ),
-                              if (widget.locationFetched) ...[
-                                const SizedBox(width: 8),
+                              if (widget.locationFetched)
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 8,
@@ -187,12 +185,9 @@ class _LocationCardState extends State<LocationCard>
                                     ),
                                   ),
                                 ),
-                              ],
                             ],
                           ),
                           const SizedBox(height: 4),
-
-                          // Location display
                           widget.locationFetched
                               ? Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -204,6 +199,8 @@ class _LocationCardState extends State<LocationCard>
                                         fontWeight: FontWeight.w600,
                                         color: Colors.black87,
                                       ),
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
@@ -245,8 +242,6 @@ class _LocationCardState extends State<LocationCard>
                     ),
                   ],
                 ),
-
-                // Additional location info when detected
                 if (widget.locationFetched) ...[
                   const SizedBox(height: 16),
                   Container(

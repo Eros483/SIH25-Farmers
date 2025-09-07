@@ -8,6 +8,7 @@ import 'package:sih_project/widgets/section_header.dart';
 import 'package:sih_project/widgets/animated_intro.dart';
 import 'package:sih_project/services/location_service.dart';
 import 'chatbot_page.dart';
+import 'govt_verified_wholesaler.dart';
 import 'package:sih_project/utils/theme_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sih_project/widgets/nearby_crops_card.dart';
@@ -86,12 +87,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     _toggleMenu();
     Navigator.push(
         context, MaterialPageRoute(builder: (_) => const ChatBotPage()));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Chatbot page will open here"),
-        backgroundColor: primaryColor,
-      ),
-    );
+  }
+
+  void _navigateToVerifiedPage(BuildContext context) {
+    _toggleMenu();
+    Navigator.push(context,
+        MaterialPageRoute(builder: (_) => const GovtVerifiedWholesalerPage()));
   }
 
   @override
@@ -113,6 +114,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             isMenuOpen: _isMenuOpen,
             toggleMenu: _toggleMenu,
             navigateToChatBot: () => _navigateToChatBot(context),
+            navigateToVerifiedPage: () => _navigateToVerifiedPage(context),
           ),
         ],
       ),
