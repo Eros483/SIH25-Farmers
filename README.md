@@ -1,21 +1,16 @@
-# <center>Krishi AI Sahayak
-<center><img src="https://i.imghippo.com/files/BIeo4080M.jpg" alt="App Logo" width="200"/></center>
+# <center>Krishi AI Sahayak</center>
+<center><img src="https://i.imghippo.com/files/KTFy7644Hak.png" alt="App Logo" width="200"/></center>
 
 <center>An app that unifies multiple platforms to serve as a single stop solution to all the needs that a farmer can have, servicable via API or android application.</center>
 
 ## App Preview
-<table>
-  <tr>
-    <td>
-      <img src="https://i.imghippo.com/files/QcQ4158Ngw.jpg" alt="ss1" width="300"/>
-    </td>
-    <td>
-      <img src="https://i.imghippo.com/files/FGaL2314KdM.jpg" alt="ss2" width="300"/>
-    </td>
-  </tr>
-</table>
-
-
+<div style="display: flex; flex-wrap: wrap; gap: 10px;">
+  <img src="https://i.imghippo.com/files/QcQ4158Ngw.jpg" alt="ss1" width="120"/>
+  <img src="https://i.imghippo.com/files/FGaL2314KdM.jpg" alt="ss2" width="120"/>
+  <img src="https://i.imghippo.com/files/Cj2755Vg.jpg" alt="ss3" width="120"/>
+  <img src="https://i.imghippo.com/files/PQT3900SE.jpg" alt="ss4" width="120"/>
+  <img src="https://i.imghippo.com/files/xesy7455fM.jpg" alt="ss6" width="120"/>
+</div>
 
 ### Available and Planned Features:
 - Integrates with readily available commercial IOT sensors to retrieve soil data.
