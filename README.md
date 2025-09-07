@@ -1,7 +1,10 @@
 # <center>Krishi AI Sahayak</center>
-<center><img src="https://i.imghippo.com/files/KTFy7644Hak.png" alt="App Logo" width="200"/></center>
-
-<center>An app that unifies multiple platforms to serve as a single stop solution to all the needs that a farmer can have, servicable via API or android application.</center>
+<div align="center">
+  <img src="https://i.imghippo.com/files/KTFy7644Hak.png" alt="App Logo" width="200"/>
+</div>
+<div align="center">
+  <em>An app that unifies multiple platforms to serve as a single stop solution to all the needs that a farmer can have, servicable via API or android application.</em>
+</div>>
 
 ## App Preview
 <div style="display: flex; flex-wrap: wrap; gap: 10px;">
